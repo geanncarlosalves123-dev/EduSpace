@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PEI CMA — Sistema de Agendamento</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --indigo: #6366f1;
+    --indigo-dark: #4f46e5;
+    --indigo-light: #e0e7ff;
+    --emerald: #10b981;
+    --emerald-light: #d1fae5;
+    --amber: #f59e0b;
+    --amber-light: #fef3c7;
+    --rose: #f43f5e;
+    --rose-light: #ffe4e6;
+    --blue: #3b82f6;
+    --blue-light: #dbeafe;
+    --slate-bg: #f8fafc;
+    --card-bg: rgba(255,255,255,0.85);
+    --glass: rgba(255,255,255,0.6);
+    --border: rgba(99,102,241,0.12);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background: var(--slate-bg);
+    color: #1e293b;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'DM Mono', monospace; }
+
+  /* ===== BACKGROUND ===== */
+  .bg-pattern {
+    background-color: #f1f5ff;
+    background-image:
+      radial-gradient(at 20% 10%, rgba(99,102,241,0.12) 0px, transparent 50%),
+      radial-gradient(at 80% 80%, rgba(16,185,129,0.08) 0px, transparent 50%),
+      radial-gradient(at 60% 20%, rgba(245,158,11,0.06) 0px, transparent 40%);
+    min-height: 100vh;
+  }
+
+  /* ===== GLASS CARDS ===== */
+  .glass-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    box-shadow: 0 4px 24px rgba(99,102,241,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .glass-card-dark {
+    background: rgba(30,41,59,0.92);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+  }
+
+  /* ===== LOGIN ===== */
+  #loginPage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    padding: 2.5rem;
+  }
+  .logo-mark {
+    width: 52px; height: 52px;
+    background: linear-gradient(135deg, var(--indigo), var(--emerald));
+    border-radius: 16px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; color: white;
+    box-shadow: 0 4px 16px rgba(99,102,241,0.35);
+  }
+
+  /* ===== INPUTS ===== */
+  .input-wrap { position: relative; }
+  .input-wrap i {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    color: #94a3b8; font-size: 0.85rem; pointer-events: none;
+    transition: color 0.2s;
+  }
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 0.9rem 0.75rem 2.6rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    background: white;
+    color: #1e293b;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .form-input:focus {
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+  .form-input:focus ~ i, .input-wrap:focus-within i { color: var(--indigo); }
+  .form-select {
+    width: 100%;
+    padding: 0.75rem 0.9rem 0.75rem 2.6rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 0.9rem;
+    background: white;
+    color: #1e293b;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    appearance: none;
+    cursor: pointer;
+  }
+  .form-select:focus {
+    border-color: var(--indigo);
+    box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
+  }
+
+  /* ===== BUTTONS ===== */
+  .btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--indigo), #818cf8);
+    color: white;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border: none; border-radius: 12px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(99,102,241,0.45); filter: brightness(1.05); }
+  .btn-primary:active { transform: translateY(0) scale(0.98); }
+
+  .btn-emerald {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--emerald), #34d399);
+    color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border: none; border-radius: 12px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(16,185,129,0.3);
+  }
+  .btn-emerald:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(16,185,129,0.4); }
+  .btn-emerald:active { transform: scale(0.98); }
+
+  .btn-rose {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--rose), #fb7185);
+    color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600; font-size: 0.85rem;
+    padding: 0.55rem 1.1rem;
+    border: none; border-radius: 10px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 3px 10px rgba(244,63,94,0.25);
+  }
+  .btn-rose:hover { transform: translateY(-1px); }
+  .btn-rose:active { transform: scale(0.98); }
+
+  .btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: white; color: #64748b;
+    font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; font-size: 0.85rem;
+    padding: 0.55rem 1.1rem;
+    border: 1.5px solid #e2e8f0; border-radius: 10px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-outline:hover { border-color: var(--indigo); color: var(--indigo); background: var(--indigo-light); }
+
+  .btn-amber {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    background: linear-gradient(135deg, var(--amber), #fbbf24);
+    color: white; font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 600; font-size: 0.9rem;
+    padding: 0.75rem 1.5rem;
+    border: none; border-radius: 12px; cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 14px rgba(245,158,11,0.3);
+  }
+  .btn-amber:hover { transform: translateY(-1px); }
+
+  /* ===== BADGES ===== */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px;
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em;
+  }
+  .badge-emerald { background: var(--emerald-light); color: #065f46; }
+  .badge-blue { background: var(--blue-light); color: #1e40af; }
+  .badge-amber { background: var(--amber-light); color: #92400e; }
+  .badge-rose { background: var(--rose-light); color: #9f1239; }
+  .badge-slate { background: #f1f5f9; color: #475569; }
+
+  /* ===== SIDEBAR ===== */
+  #sidebar {
+    width: 260px; min-height: 100vh;
+    background: rgba(30,41,59,0.97);
+    backdrop-filter: blur(20px);
+    position: fixed; top: 0; left: 0; z-index: 50;
+    display: flex; flex-direction: column;
+    padding: 0;
+    transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar-logo {
+    padding: 1.5rem 1.5rem 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .sidebar-nav { flex: 1; padding: 1rem 0.75rem; display: flex; flex-direction: column; gap: 3px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0.7rem 1rem; border-radius: 12px; cursor: pointer;
+    color: #94a3b8; font-size: 0.88rem; font-weight: 500;
+    transition: all 0.15s;
+    border: none; background: transparent; width: 100%; text-align: left;
+  }
+  .nav-item:hover { color: white; background: rgba(255,255,255,0.07); }
+  .nav-item.active { color: white; background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(99,102,241,0.15)); border: 1px solid rgba(99,102,241,0.3); }
+  .nav-item i { width: 18px; text-align: center; font-size: 0.9rem; }
+  .sidebar-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  #appLayout { display: none; }
+  #appLayout.show { display: flex; }
+  .main-content { margin-left: 260px; flex: 1; min-height: 100vh; }
+  .topbar {
+    padding: 1rem 1.75rem;
+    display: flex; align-items: center; justify-content: space-between;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(99,102,241,0.08);
+    position: sticky; top: 0; z-index: 40;
+  }
+  .page-content { padding: 1.75rem; }
+
+  /* ===== STAT CARDS ===== */
+  .stat-card {
+    padding: 1.25rem 1.5rem;
+    border-radius: 18px;
+    position: relative; overflow: hidden;
+  }
+  .stat-card::before {
+    content:''; position: absolute;
+    width: 90px; height: 90px; border-radius: 50%;
+    right: -15px; top: -15px;
+    background: rgba(255,255,255,0.12);
+  }
+
+  /* ===== RESERVA CARD ===== */
+  .reserva-card {
+    background: white;
+    border: 1px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.1rem 1.25rem;
+    display: flex; align-items: center; gap: 14px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    position: relative; overflow: hidden;
+  }
+  .reserva-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.1); }
+  .reserva-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    border-radius: 4px 0 0 4px;
+  }
+  .reserva-card.status-confirmado::before { background: var(--emerald); }
+  .reserva-card.status-em-uso::before { background: var(--blue); }
+  .reserva-card.status-pendente::before { background: var(--amber); }
+  .reserva-card.status-cancelado::before { background: #cbd5e1; }
+
+  /* ===== ROOM GRID ===== */
+  .room-card {
+    background: white;
+    border: 1.5px solid #f1f5f9;
+    border-radius: 16px;
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .room-card:hover { border-color: var(--indigo); box-shadow: 0 6px 20px rgba(99,102,241,0.12); }
+  .room-card.available { border-color: rgba(16,185,129,0.3); }
+  .room-card.in-use { border-color: rgba(59,130,246,0.3); background: #f8fbff; }
+  .room-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(15,23,42,0.6);
+    backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.25s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: white; border-radius: 24px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
+    transform: translateY(20px) scale(0.97);
+    transition: transform 0.25s cubic-bezier(.4,0,.2,1);
+  }
+  .modal-overlay.show .modal-box { transform: translateY(0) scale(1); }
+
+  /* ===== CONFIRMATION SCREEN ===== */
+  #confirmScreen {
+    position: fixed; inset: 0; z-index: 200;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    display: none; align-items: center; justify-content: center;
+    flex-direction: column; padding: 2rem;
+  }
+  #confirmScreen.show { display: flex; }
+  .confirm-card {
+    background: white; border-radius: 28px;
+    padding: 2.5rem; max-width: 480px; width: 100%;
+    box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .confirm-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(90deg, var(--indigo), var(--emerald));
+  }
+
+  /* ===== REPORT ===== */
+  .report-table th {
+    background: #f8fafc; padding: 0.75rem 1rem;
+    font-size: 0.78rem; font-weight: 600; color: #64748b;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    text-align: left;
+  }
+  .report-table td { padding: 0.85rem 1rem; font-size: 0.85rem; border-top: 1px solid #f1f5f9; }
+  .report-table tr:hover td { background: #fafbff; }
+
+  /* ===== TOAST ===== */
+  #toastContainer {
+    position: fixed; bottom: 24px; right: 24px; z-index: 500;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .toast {
+    display: flex; align-items: center; gap: 12px;
+    padding: 0.9rem 1.2rem; border-radius: 14px;
+    background: white; border: 1px solid #f1f5f9;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    min-width: 280px; font-size: 0.88rem;
+    animation: slideInRight 0.3s cubic-bezier(.4,0,.2,1);
+  }
+  @keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  .toast.exit { animation: slideOutRight 0.3s cubic-bezier(.4,0,.2,1) forwards; }
+  @keyframes slideOutRight {
+    to { transform: translateX(120%); opacity: 0; }
+  }
+
+  /* ===== MOBILE ===== */
+  .mobile-toggle {
+    display: none; align-items: center; justify-content: center;
+    width: 40px; height: 40px; border: 1.5px solid #e2e8f0; border-radius: 10px;
+    cursor: pointer; background: white; font-size: 1rem; color: #64748b;
+  }
+  @media (max-width: 768px) {
+    #sidebar { transform: translateX(-100%); }
+    #sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0; }
+    .mobile-toggle { display: flex; }
+    .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 49; display: none; }
+    .sidebar-overlay.show { display: block; }
+  }
+
+  /* ===== ANIMATIONS ===== */
+  .fade-in { animation: fadeIn 0.35s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    animation: pulseDot 2s infinite;
+  }
+  @keyframes pulseDot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(0.8); } }
+
+  /* ===== DIVIDER ===== */
+  .section-divider {
+    display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 1.2rem;
+  }
+  .section-divider span { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; white-space: nowrap; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+
+  /* Number input no spinner */
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+  input[type=number] { -moz-appearance: textfield; }
+</style>
+</head>
+<body class="bg-pattern">
+
+<!-- ===== TOAST ===== -->
+<div id="toastContainer"></div>
+
+<!-- ===== SIDEBAR OVERLAY (mobile) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="loginPage">
+  <div class="login-card glass-card fade-in">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="logo-mark"><i class="fa-solid fa-graduation-cap"></i></div>
+      <div>
+        <div style="font-size:1.3rem;font-weight:800;color:#1e293b;letter-spacing:-0.02em;">EduSpace</div>
+        <div style="font-size:0.75rem;color:#94a3b8;font-weight:500;">Sistema de Agendamento</div>
+      </div>
+    </div>
+
+    <div style="font-size:1.35rem;font-weight:700;color:#1e293b;margin-bottom:0.4rem;">Bem-vindo de volta</div>
+    <p style="font-size:0.85rem;color:#64748b;margin-bottom:1.75rem;">Entre com suas credenciais para continuar.</p>
+
+    <!-- Role selector -->
+    <div style="display:flex;gap:8px;margin-bottom:1.5rem;">
+      <button onclick="setRole('professor')" id="roleProf"
+        style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid var(--indigo);background:var(--indigo-light);color:var(--indigo);font-weight:600;font-size:0.82rem;cursor:pointer;transition:all .15s;">
+        <i class="fa-solid fa-chalkboard-user" style="margin-right:6px;"></i>Professor
+      </button>
+      <button onclick="setRole('admin')" id="roleAdm"
+        style="flex:1;padding:0.6rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#64748b;font-weight:600;font-size:0.82rem;cursor:pointer;transition:all .15s;">
+        <i class="fa-solid fa-shield-halved" style="margin-right:6px;"></i>Administrador
+      </button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;">E-mail</label>
+        <div class="input-wrap">
+          <input type="email" id="loginEmail" class="form-input" placeholder="seu@email.com">
+          <i class="fa-solid fa-envelope"></i>
+        </div>
+      </div>
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;">Senha</label>
+        <div class="input-wrap">
+          <input type="password" id="loginPass" class="form-input" placeholder="••••••••">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:0.75rem;margin-bottom:1.5rem;text-align:right;">
+      <a href="#" style="font-size:0.8rem;color:var(--indigo);font-weight:500;">Esqueci minha senha</a>
+    </div>
+
+    <button class="btn-primary" style="width:100%;padding:0.85rem;" onclick="doLogin()">
+      <i class="fa-solid fa-right-to-bracket"></i> Entrar na plataforma
+    </button>
+
+    <div style="margin-top:1.25rem;padding:1rem;background:#f8fafc;border-radius:12px;font-size:0.78rem;color:#64748b;line-height:1.7;">
+      <strong style="color:#374151;">Contas de demonstração:</strong><br>
+      Professor: <span class="mono">prof@escola.com</span> / <span class="mono">123456</span><br>
+      Admin: <span class="mono">admin@escola.com</span> / <span class="mono">admin123</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP LAYOUT ===== -->
+<div id="appLayout">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="logo-mark" style="width:36px;height:36px;border-radius:10px;font-size:1rem;">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <div style="color:white;font-weight:800;font-size:1rem;letter-spacing:-0.01em;">EduSpace</div>
+          <div style="color:#64748b;font-size:0.7rem;">Agendamento Escolar</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav" id="sidebarNav">
+      <!-- items injected by JS -->
+    </nav>
+
+    <div class="sidebar-footer">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:0.75rem;">
+        <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--emerald));display:flex;align-items:center;justify-content:center;color:white;font-size:0.85rem;font-weight:700;" id="avatarInit">P</div>
+        <div>
+          <div style="color:white;font-size:0.82rem;font-weight:600;" id="sidebarUserName">Professor</div>
+          <div style="color:#64748b;font-size:0.72rem;" id="sidebarUserRole">Professor</div>
+        </div>
+      </div>
+      <button onclick="doLogout()" class="nav-item" style="width:100%;">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main-content bg-pattern">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <button class="mobile-toggle" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+        <div>
+          <div style="font-weight:700;font-size:1rem;color:#1e293b;" id="pageTitle">Dashboard</div>
+          <div style="font-size:0.75rem;color:#94a3b8;" id="pageSubtitle">Visão geral do sistema</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#f0fdf4;border-radius:20px;border:1px solid #bbf7d0;">
+          <span class="pulse-dot" style="background:var(--emerald);"></span>
+          <span style="font-size:0.75rem;font-weight:600;color:#065f46;">Sistema Online</span>
+        </div>
+        <div style="font-size:0.78rem;color:#94a3b8;" id="topbarClock"></div>
+      </div>
+    </div>
+
+    <!-- PAGE CONTENT -->
+    <div class="page-content" id="mainContent"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: NOVA RESERVA ===== -->
+<div class="modal-overlay" id="modalReserva">
+  <div class="modal-box">
+    <div style="padding:1.75rem 1.75rem 0;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;color:#1e293b;">Nova Reserva</div>
+          <div style="font-size:0.8rem;color:#64748b;">Preencha os dados para agendar o espaço</div>
+        </div>
+        <button onclick="closeModal('modalReserva')" style="width:34px;height:34px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;color:#64748b;font-size:0.9rem;display:flex;align-items:center;justify-content:center;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    <div style="padding:0 1.75rem 1.75rem;" id="formReservaContent">
+      <!-- form injected -->
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CANCELAR ===== -->
+<div class="modal-overlay" id="modalCancel">
+  <div class="modal-box" style="max-width:380px;">
+    <div style="padding:2rem;text-align:center;">
+      <div style="width:52px;height:52px;border-radius:50%;background:var(--rose-light);margin:0 auto 1rem;display:flex;align-items:center;justify-content:center;font-size:1.3rem;color:var(--rose);">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      <div style="font-weight:700;font-size:1rem;color:#1e293b;margin-bottom:0.4rem;">Cancelar Reserva?</div>
+      <p style="font-size:0.85rem;color:#64748b;margin-bottom:1.5rem;">Esta ação irá liberar o espaço para outros agendamentos.</p>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-outline" style="flex:1;" onclick="closeModal('modalCancel')">Voltar</button>
+        <button class="btn-rose" style="flex:1;" onclick="confirmCancel()"><i class="fa-solid fa-ban"></i> Cancelar Reserva</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CONFIRM SCREEN (after booking) ===== -->
+<div id="confirmScreen">
+  <div class="confirm-card fade-in" id="confirmCard">
+    <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--emerald));margin:0 auto 1.25rem;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:white;box-shadow:0 8px 24px rgba(99,102,241,0.35);">
+      <i class="fa-solid fa-check"></i>
+    </div>
+    <div style="font-weight:800;font-size:1.25rem;color:#1e293b;margin-bottom:0.4rem;">Reserva Confirmada!</div>
+    <p style="font-size:0.85rem;color:#64748b;margin-bottom:1.75rem;">Seu espaço foi agendado com sucesso.</p>
+
+    <div id="confirmDetails" style="background:#f8fafc;border-radius:14px;padding:1.25rem;margin-bottom:1.5rem;text-align:left;"></div>
+
+    <div style="background:#fff8e1;border-radius:12px;padding:1rem;margin-bottom:1.5rem;border:1px solid #fde68a;">
+      <div style="font-size:0.8rem;color:#92400e;font-weight:600;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-bell"></i> Lembrete Importante
+      </div>
+      <p style="font-size:0.78rem;color:#78350f;margin-top:4px;">Ao terminar de usar o espaço, clique em <strong>"Liberar Sala"</strong> para liberar para outros colegas.</p>
+    </div>
+
+    <button class="btn-emerald" style="width:100%;padding:0.9rem;margin-bottom:0.75rem;" onclick="liberarSalaAction()">
+      <i class="fa-solid fa-door-open"></i> Liberar Sala (Terminou o uso)
+    </button>
+    <button class="btn-outline" style="width:100%;" onclick="closeConfirmScreen()">
+      <i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard
+    </button>
+  </div>
+</div>
+
+<!-- ===== MODAL: REPORT ===== -->
+<div class="modal-overlay" id="modalReport">
+  <div class="modal-box" style="max-width:720px;">
+    <div style="padding:1.75rem;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <div>
+          <div style="font-weight:800;font-size:1.1rem;color:#1e293b;">Relatório Semanal</div>
+          <div style="font-size:0.8rem;color:#64748b;" id="reportDateRange"></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button onclick="printReport()" class="btn-outline"><i class="fa-solid fa-print"></i> Imprimir</button>
+          <button onclick="closeModal('modalReport')" style="width:34px;height:34px;border-radius:10px;border:1.5px solid #e2e8f0;background:white;cursor:pointer;color:#64748b;font-size:0.9rem;display:flex;align-items:center;justify-content:center;"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div id="reportContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+async function carregarAgendamentos() {
+  try {
+
+    const resposta = await fetch('/api/agendamentos')
+
+    const dados = await resposta.json();
+
+    agendamentos = dados;
+
+  } catch (erro) {
+    console.error("ERRO FETCH:", erro);
+
+  }
+}
+
+document.addEventListener('DOMContentLoaded', carregarAgendamentos);
+
+
+const USERS = [
+  { id:1, name:'Prof. Maria Silva', email:'prof@escola.com', pass:'123456', role:'professor' },
+  { id:2, name:'Admin Carlos', email:'admin@escola.com', pass:'admin123', role:'admin' },
+  { id:3, name:'Prof. João Costa', email:'joao@escola.com', pass:'123456', role:'professor' },
+  { id:4, name:'Prof. Helen', email:'Helen@escola.com', pass:'hele123@', role:'professor' },
+];
+
+const ESPACOS = [
+  { id:'lab1', nome:'Laboratório de Informática 1', tipo:'lab', capacidade:30, icon:'fa-computer', color:'#6366f1' },
+  { id:'lab2', nome:'Laboratório de Informática 2', tipo:'lab', capacidade:25, icon:'fa-computer', color:'#8b5cf6' },
+  { id:'aud', nome:'Auditório Principal', tipo:'auditorio', capacidade:200, icon:'fa-person-chalkboard', color:'#3b82f6' },
+  { id:'sala1', nome:'Sala Multimídia A', tipo:'sala', capacidade:35, icon:'fa-tv', color:'#10b981' },
+  { id:'sala2', nome:'Sala Multimídia B', tipo:'sala', capacidade:35, icon:'fa-tv', color:'#14b8a6' },
+  { id:'proj_a', nome:'Projetor Portátil A', tipo:'equipamento', capacidade:1, icon:'fa-projector', color:'#f59e0b' },
+  { id:'proj_b', nome:'Projetor Portátil B', tipo:'equipamento', capacidade:1, icon:'fa-projector', color:'#f97316' },
+];
+
+const HORARIOS = [
+  '07:00 – 07:50','07:50 – 08:40','08:40 – 09:30','09:30 – 10:20',
+  '10:30 – 11:20','11:20 – 12:10','13:00 – 13:50','13:50 – 14:40',
+  '14:40 – 15:30','15:30 – 16:20','16:20 – 17:10','17:10 – 18:00',
+  '18:10 – 19:00','19:00 – 19:50','19:50 – 20:40','20:40 – 21:30',
+];
+
+let agendamentos = [
+  { id:1, professorId:1, professorNome:'Prof. Maria Silva', espacoId:'lab1', espacoNome:'Laboratório de Informática 1', sala:'Bloco A - Térreo', data:'2025-05-12', horario:'07:00 – 07:50', aulas:2, notebooks:20, tablets:5, status:'em-uso', problema:'', createdAt:'2025-05-11T18:30:00' },
+];
+
+let currentUser = null;
+let currentRole = 'professor';
+let cancelTargetId = null;
+let nextId = 5;
+let confirmReservaData = null;
+
+// =============================================
+// AUTH
+// =============================================
+function setRole(r) {
+  currentRole = r;
+  const pBtn = document.getElementById('roleProf');
+  const aBtn = document.getElementById('roleAdm');
+  if (r==='professor') {
+    pBtn.style.cssText = 'flex:1;padding:.6rem;border-radius:10px;border:1.5px solid var(--indigo);background:var(--indigo-light);color:var(--indigo);font-weight:600;font-size:.82rem;cursor:pointer;transition:all .15s;';
+    aBtn.style.cssText = 'flex:1;padding:.6rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#64748b;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .15s;';
+  } else {
+    aBtn.style.cssText = 'flex:1;padding:.6rem;border-radius:10px;border:1.5px solid var(--indigo);background:var(--indigo-light);color:var(--indigo);font-weight:600;font-size:.82rem;cursor:pointer;transition:all .15s;';
+    pBtn.style.cssText = 'flex:1;padding:.6rem;border-radius:10px;border:1.5px solid #e2e8f0;background:white;color:#64748b;font-weight:600;font-size:.82rem;cursor:pointer;transition:all .15s;';
+  }
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+
+  try {
+    const resposta = await fetch('/api/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        email: email,
+        senha: pass,
+        role: currentRole
+      })
+    });
+
+    if (!resposta.ok) {
+      showToast('Credenciais inválidas!', 'error');
+      return;
+    }
+
+    const user = await resposta.json();
+
+    currentUser = {
+      id: user.id,
+      name: user.nome,
+      email: user.email,
+      role: user.perfil.toLowerCase()
+    };
+
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('appLayout').classList.add('show');
+
+    document.getElementById('avatarInit').textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('sidebarUserName').textContent = currentUser.name;
+    document.getElementById('sidebarUserRole').textContent = currentUser.role === 'admin' ? 'Administrador' : 'Professor';
+
+    buildSidebar();
+    navigateTo('dashboard');
+
+    showToast(`Bem-vindo, ${currentUser.name}!`, 'success');
+
+  } catch (erro) {
+    console.error('Erro no login:', erro);
+    showToast('Erro ao conectar com o servidor!', 'error');
+  }
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('appLayout').classList.remove('show');
+  document.getElementById('loginPage').style.display = 'flex';
+  document.getElementById('loginEmail').value='';
+  document.getElementById('loginPass').value='';
+}
+
+// =============================================
+// SIDEBAR
+// =============================================
+function buildSidebar() {
+  const isAdmin = currentUser.role==='admin';
+  const items = isAdmin ? [
+    { page:'dashboard', icon:'fa-gauge', label:'Dashboard' },
+    { page:'reservas', icon:'fa-calendar-check', label:'Todas as Reservas' },
+    { page:'espacos', icon:'fa-building', label:'Espaços & Salas' },
+    { page:'relatorio', icon:'fa-chart-bar', label:'Relatórios' },
+  ] : [
+    { page:'dashboard', icon:'fa-gauge', label:'Meu Dashboard' },
+    { page:'minhas', icon:'fa-bookmark', label:'Minhas Reservas' },
+    { page:'espacos', icon:'fa-building', label:'Ver Espaços' },
+    { page:'nova', icon:'fa-plus-circle', label:'Nova Reserva' },
+  ];
+
+  const nav = document.getElementById('sidebarNav');
+  nav.innerHTML = items.map(i => `
+    <button class="nav-item" id="nav_${i.page}" onclick="navigateTo('${i.page}')">
+      <i class="fa-solid ${i.icon}"></i> ${i.label}
+    </button>
+  `).join('');
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const btn = document.getElementById('nav_'+page);
+  if (btn) btn.classList.add('active');
+  closeSidebar();
+
+  const titles = {
+    dashboard: ['Dashboard', 'Visão geral do sistema'],
+    reservas: ['Todas as Reservas', 'Gerencie todos os agendamentos'],
+    minhas: ['Minhas Reservas', 'Seus agendamentos'],
+    espacos: ['Espaços & Salas', 'Disponibilidade em tempo real'],
+    nova: ['Nova Reserva', 'Agendar um espaço'],
+    relatorio: ['Relatórios', 'Análise semanal'],
+  };
+  const t = titles[page] || ['EduSpace',''];
+  document.getElementById('pageTitle').textContent = t[0];
+  document.getElementById('pageSubtitle').textContent = t[1];
+
+  if (page==='dashboard') renderDashboard();
+  else if (page==='reservas') renderReservas(false);
+  else if (page==='minhas') renderReservas(true);
+  else if (page==='espacos') renderEspacos();
+  else if (page==='nova') { openModalReserva(); }
+  else if (page==='relatorio') { renderDashboard(); openRelatorio(); }
+}
+
+// =============================================
+// DASHBOARD
+// =============================================
+function renderDashboard() {
+  const isAdmin = currentUser.role==='admin';
+  const minhas = isAdmin ? agendamentos : agendamentos.filter(a=>a.professorId===currentUser.id);
+  const hoje = new Date().toISOString().slice(0,10);
+  const emUso = agendamentos.filter(a=>a.status==='em-uso').length;
+  const confirmados = agendamentos.filter(a=>a.status==='confirmado').length;
+  const comProblema = agendamentos.filter(a=>a.problema && a.problema.length>0).length;
+  const proximas = agendamentos.filter(a=>a.status==='confirmado').slice(0,4);
+
+  const statsHTML = isAdmin ? `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:1.75rem;">
+      ${statCard('fa-door-open','Em Uso Agora',emUso,'linear-gradient(135deg,#3b82f6,#6366f1)','bg')}
+      ${statCard('fa-calendar-check','Confirmadas',confirmados,'linear-gradient(135deg,#10b981,#34d399)','em')}
+      ${statCard('fa-triangle-exclamation','Com Problemas',comProblema,'linear-gradient(135deg,#f59e0b,#fbbf24)','am')}
+      ${statCard('fa-users','Professores',USERS.filter(u=>u.role==='professor').length,'linear-gradient(135deg,#8b5cf6,#a78bfa)','pu')}
+    </div>
+  ` : `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:1.75rem;">
+      ${statCard('fa-bookmark','Minhas Reservas',minhas.length,'linear-gradient(135deg,#6366f1,#818cf8)','')}
+      ${statCard('fa-door-open','Em Uso Agora',minhas.filter(a=>a.status==='em-uso').length,'linear-gradient(135deg,#3b82f6,#60a5fa)','')}
+      ${statCard('fa-calendar-check','Confirmadas',minhas.filter(a=>a.status==='confirmado').length,'linear-gradient(135deg,#10b981,#34d399)','')}
+    </div>
+  `;
+
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = `<div class="fade-in">
+    ${isAdmin ? `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div style="font-size:1.05rem;font-weight:700;color:#1e293b;">Visão Geral</div>
+      <button class="btn-primary" onclick="openRelatorio()"><i class="fa-solid fa-file-chart-column"></i> Gerar Relatório Semanal</button>
+    </div>` : `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div style="font-size:1.05rem;font-weight:700;color:#1e293b;">Olá, ${currentUser.name.split(' ')[1] || currentUser.name}! 👋</div>
+      <button class="btn-primary" onclick="openModalReserva()"><i class="fa-solid fa-plus"></i> Nova Reserva</button>
+    </div>`}
+    ${statsHTML}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="glass-card" style="padding:1.25rem;">
+        <div style="font-weight:700;font-size:0.9rem;color:#1e293b;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-clock" style="color:var(--indigo);"></i> Próximas Reservas
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;" id="proxReservas">
+          ${proximas.length===0 ? '<div style="color:#94a3b8;font-size:0.85rem;text-align:center;padding:1rem;">Nenhuma reserva confirmada</div>' :
+            proximas.map(a => reservaCardHTML(a)).join('')}
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding:1.25rem;">
+        <div style="font-weight:700;font-size:0.9rem;color:#1e293b;margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
+          <i class="fa-solid fa-building" style="color:var(--emerald);"></i> Espaços Disponíveis Agora
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${ESPACOS.slice(0,5).map(e => {
+            const ocupado = agendamentos.some(a=>a.espacoId===e.id && a.status==='em-uso');
+            return `<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:${ocupado?'#fff8f8':'#f0fdf4'};border:1px solid ${ocupado?'#fecaca':'#bbf7d0'};">
+              <div style="width:30px;height:30px;border-radius:8px;background:${e.color}20;display:flex;align-items:center;justify-content:center;color:${e.color};font-size:0.75rem;">
+                <i class="fa-solid ${e.icon}"></i>
+              </div>
+              <div style="flex:1;font-size:0.82rem;font-weight:500;color:#334155;">${e.nome}</div>
+              <span class="badge ${ocupado?'badge-rose':'badge-emerald'}">
+                <span class="pulse-dot" style="background:${ocupado?'var(--rose)':'var(--emerald)'};"></span>
+                ${ocupado?'Em Uso':'Livre'}
+              </span>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function statCard(icon, label, val, gradient) {
+  return `<div class="stat-card" style="background:${gradient};color:white;">
+    <div style="font-size:1.6rem;font-weight:800;margin-bottom:2px;">${val}</div>
+    <div style="font-size:0.78rem;opacity:0.85;">${label}</div>
+    <i class="fa-solid ${icon}" style="position:absolute;right:14px;bottom:10px;font-size:1.5rem;opacity:0.2;"></i>
+  </div>`;
+}
+
+// =============================================
+// RESERVAS LIST
+// =============================================
+function renderReservas(minhas) {
+  const list = minhas ? agendamentos.filter(a=>a.professorId===currentUser.id) : agendamentos;
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = `<div class="fade-in">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;">
+      <div style="font-size:1rem;font-weight:700;color:#1e293b;">${list.length} agendamento(s)</div>
+      <button class="btn-primary" onclick="openModalReserva()"><i class="fa-solid fa-plus"></i> Nova Reserva</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      ${list.length===0 ? '<div class="glass-card" style="padding:2rem;text-align:center;color:#94a3b8;">Nenhum agendamento encontrado</div>' :
+        list.map(a => `
+        <div class="reserva-card status-${a.status}">
+          <div style="width:42px;height:42px;border-radius:12px;background:${getEspacoColor(a.espacoId)}20;display:flex;align-items:center;justify-content:center;color:${getEspacoColor(a.espacoId)};font-size:1rem;flex-shrink:0;">
+            <i class="fa-solid ${getEspacoIcon(a.espacoId)}"></i>
+          </div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-weight:700;font-size:0.9rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.espacoNome}</div>
+            <div style="font-size:0.78rem;color:#64748b;margin-top:2px;">
+              <i class="fa-solid fa-calendar-days" style="margin-right:4px;"></i>${formatDate(a.data)} &nbsp;
+              <i class="fa-solid fa-clock" style="margin-right:4px;"></i>${a.horario} &nbsp;
+              <i class="fa-solid fa-chalkboard-user" style="margin-right:4px;"></i>${a.professorNome}
+            </div>
+            <div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">
+              Sala: ${a.sala} &nbsp;·&nbsp; ${a.aulas} aula(s)
+              ${a.notebooks>0?`&nbsp;·&nbsp; ${a.notebooks} notebooks`:''}
+              ${a.tablets>0?`&nbsp;·&nbsp; ${a.tablets} tablets`:''}
+            </div>
+            ${a.problema ? `<div style="margin-top:5px;"><span class="badge badge-amber"><i class="fa-solid fa-triangle-exclamation"></i> ${a.problema}</span></div>` : ''}
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            ${badgeStatus(a.status)}
+            <div style="display:flex;gap:6px;">
+              ${a.status==='em-uso' ? `<button class="btn-emerald" style="padding:0.4rem 0.9rem;font-size:0.78rem;" onclick="mostrarConfirmScreen(${a.id})"><i class="fa-solid fa-door-open"></i> Liberar</button>` : ''}
+              ${a.status!=='cancelado' && a.status!=='em-uso' ? `<button class="btn-rose" style="padding:0.4rem 0.9rem;font-size:0.78rem;" onclick="triggerCancel(${a.id})"><i class="fa-solid fa-ban"></i> Cancelar</button>` : ''}
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// =============================================
+// ESPACOS
+// =============================================
+function renderEspacos() {
+  const mc = document.getElementById('mainContent');
+  mc.innerHTML = `<div class="fade-in">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">
+      ${ESPACOS.map(e => {
+        const ocupado = agendamentos.some(a=>a.espacoId===e.id && a.status==='em-uso');
+        const prox = agendamentos.find(a=>a.espacoId===e.id && a.status==='confirmado');
+        return `<div class="room-card ${ocupado?'in-use':'available'}">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.75rem;">
+            <div class="room-icon" style="background:${e.color}18;color:${e.color};">
+              <i class="fa-solid ${e.icon}"></i>
+            </div>
+            <span class="badge ${ocupado?'badge-blue':'badge-emerald'}">
+              <span class="pulse-dot" style="background:${ocupado?'var(--blue)':'var(--emerald)'};"></span>
+              ${ocupado?'Em Uso':'Disponível'}
+            </span>
+          </div>
+          <div style="font-weight:700;font-size:0.88rem;color:#1e293b;">${e.nome}</div>
+          <div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">Cap. ${e.capacidade} pessoas</div>
+          ${prox ? `<div style="margin-top:8px;padding:6px 8px;background:#f0f7ff;border-radius:8px;font-size:0.75rem;color:#1e40af;">
+            <i class="fa-solid fa-clock" style="margin-right:4px;"></i>Próx: ${prox.horario}
+          </div>` : ''}
+          <button class="btn-primary" style="width:100%;margin-top:10px;padding:0.55rem;font-size:0.8rem;" onclick="openModalReserva('${e.id}')">
+            <i class="fa-solid fa-plus"></i> Reservar
+          </button>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+// =============================================
+// MODAL NOVA RESERVA
+// =============================================
+function openModalReserva(espacoPreSel) {
+  if (document.getElementById('nav_dashboard')) document.getElementById('nav_dashboard').classList.remove('active');
+  const content = document.getElementById('formReservaContent');
+  content.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:14px;">
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-chalkboard-user" style="color:var(--indigo);margin-right:5px;"></i>Professor</label>
+        <div class="input-wrap">
+          <input type="text" id="fProfessor" class="form-input" placeholder="Nome completo" value="${currentUser.name}">
+          <i class="fa-solid fa-user"></i>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-building" style="color:var(--indigo);margin-right:5px;"></i>Espaço / Equipamento</label>
+        <div class="input-wrap">
+          <select id="fEspaco" class="form-select">
+            <option value="">Selecione o espaço</option>
+            ${ESPACOS.map(e=>`<option value="${e.id}" ${espacoPreSel===e.id?'selected':''}>${e.nome}</option>`).join('')}
+          </select>
+          <i class="fa-solid fa-school"></i>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-location-dot" style="color:var(--indigo);margin-right:5px;"></i>Identificação da Sala</label>
+        <div class="input-wrap">
+          <input type="text" id="fSala" class="form-input" placeholder="Ex: Bloco A - Sala 101, Térreo">
+          <i class="fa-solid fa-map-pin"></i>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-calendar" style="color:var(--indigo);margin-right:5px;"></i>Data</label>
+          <div class="input-wrap">
+            <input type="date" id="fData" class="form-input" style="padding-left:2.4rem;" value="${new Date().toISOString().slice(0,10)}">
+            <i class="fa-solid fa-calendar"></i>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-clock" style="color:var(--indigo);margin-right:5px;"></i>Horário de Início</label>
+          <div class="input-wrap">
+            <select id="fHorario" class="form-select">
+              <option value="">Selecionar</option>
+              ${HORARIOS.map(h=>`<option value="${h}">${h}</option>`).join('')}
+            </select>
+            <i class="fa-solid fa-clock"></i>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-school-flag" style="color:var(--indigo);margin-right:5px;"></i>Quantidade de Aulas</label>
+        <div class="input-wrap">
+          <input type="number" id="fAulas" class="form-input" placeholder="Ex: 2" min="1" max="8" value="1">
+          <i class="fa-solid fa-hashtag"></i>
+        </div>
+        <div style="font-size:0.73rem;color:#94a3b8;margin-top:4px;">Cada aula = 50 minutos</div>
+      </div>
+
+      <div class="section-divider"><span>Equipamentos Necessários</span></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div>
+          <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-laptop" style="color:#6366f1;margin-right:5px;"></i>Notebooks</label>
+          <div class="input-wrap">
+            <input type="number" id="fNotebooks" class="form-input" placeholder="Qtd" min="0" max="40" value="0">
+            <i class="fa-solid fa-laptop"></i>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-tablet-screen-button" style="color:#8b5cf6;margin-right:5px;"></i>Tablets</label>
+          <div class="input-wrap">
+            <input type="number" id="fTablets" class="form-input" placeholder="Qtd" min="0" max="40" value="0">
+            <i class="fa-solid fa-tablet-screen-button"></i>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:6px;"><i class="fa-solid fa-triangle-exclamation" style="color:var(--amber);margin-right:5px;"></i>Observações / Problemas (opcional)</label>
+        <div class="input-wrap">
+          <input type="text" id="fProblema" class="form-input" placeholder="Ex: Projetor com defeito, falta cadeiras...">
+          <i class="fa-solid fa-message"></i>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button class="btn-outline" style="flex:1;" onclick="closeModal('modalReserva')">Cancelar</button>
+        <button class="btn-primary" style="flex:2;" onclick="salvarReserva()">
+          <i class="fa-solid fa-calendar-plus"></i> Confirmar Reserva
+        </button>
+      </div>
+    </div>
+  `;
+  openModal('modalReserva');
+}
+
+function salvarReserva() {
+  const prof = document.getElementById('fProfessor').value.trim();
+  const espaco = document.getElementById('fEspaco').value;
+  const sala = document.getElementById('fSala').value.trim();
+  const data = document.getElementById('fData').value;
+  const horario = document.getElementById('fHorario').value;
+  const aulas = parseInt(document.getElementById('fAulas').value)||1;
+  const notebooks = parseInt(document.getElementById('fNotebooks').value)||0;
+  const tablets = parseInt(document.getElementById('fTablets').value)||0;
+  const problema = document.getElementById('fProblema').value.trim();
+
+  if (!prof||!espaco||!sala||!data||!horario) { showToast('Preencha todos os campos obrigatórios!','error'); return; }
+
+  const espacoObj = ESPACOS.find(e=>e.id===espaco);
+  const nova = {
+    id: nextId++,
+    professorId: currentUser.id,
+    professorNome: prof,
+    espacoId: espaco,
+    espacoNome: espacoObj.nome,
+    sala, data, horario, aulas, notebooks, tablets,
+    status: 'confirmado',
+    problema,
+    createdAt: new Date().toISOString(),
+  };
+  agendamentos.push(nova);
+  confirmReservaData = nova;
+  closeModal('modalReserva');
+  showConfirmScreen(nova);
+}
+
+// =============================================
+// CONFIRM SCREEN
+// =============================================
+function showConfirmScreen(a) {
+  const espacoObj = ESPACOS.find(e=>e.id===a.espacoId);
+  document.getElementById('confirmDetails').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid #f1f5f9;">
+        <div style="width:40px;height:40px;border-radius:12px;background:${espacoObj.color}20;display:flex;align-items:center;justify-content:center;color:${espacoObj.color};font-size:1rem;">
+          <i class="fa-solid ${espacoObj.icon}"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:0.95rem;color:#1e293b;">${a.espacoNome}</div>
+          <div style="font-size:0.78rem;color:#64748b;">${a.sala}</div>
+        </div>
+      </div>
+      ${detailRow('fa-calendar-days','Data',formatDate(a.data),'#6366f1')}
+      ${detailRow('fa-clock','Horário',a.horario,'#3b82f6')}
+      ${detailRow('fa-school-flag','Duração',`${a.aulas} aula(s) (~${a.aulas*50} min)`,'#10b981')}
+      ${a.notebooks>0 ? detailRow('fa-laptop','Notebooks',a.notebooks,'#8b5cf6') : ''}
+      ${a.tablets>0 ? detailRow('fa-tablet-screen-button','Tablets',a.tablets,'#14b8a6') : ''}
+      ${detailRow('fa-chalkboard-user','Professor',a.professorNome,'#64748b')}
+    </div>
+  `;
+  document.getElementById('confirmScreen').classList.add('show');
+}
+
+function detailRow(icon, label, val, color) {
+  return `<div style="display:flex;align-items:center;justify-content:space-between;">
+    <div style="display:flex;align-items:center;gap:7px;font-size:0.8rem;color:#64748b;">
+      <i class="fa-solid ${icon}" style="color:${color};width:14px;"></i> ${label}
+    </div>
+    <div style="font-size:0.82rem;font-weight:600;color:#1e293b;">${val}</div>
+  </div>`;
+}
+
+function liberarSalaAction() {
+  if (confirmReservaData) {
+    const ag = agendamentos.find(a=>a.id===confirmReservaData.id);
+    if (ag) ag.status = 'em-uso';
+  }
+  closeConfirmScreen();
+  showToast('Sala marcada como Em Uso! Lembre-se de liberar ao terminar.','info');
+  navigateTo('dashboard');
+}
+
+function closeConfirmScreen() {
+  document.getElementById('confirmScreen').classList.remove('show');
+  confirmReservaData = null;
+  navigateTo('dashboard');
+}
+
+function mostrarConfirmScreen(id) {
+  const a = agendamentos.find(x=>x.id===id);
+  if (!a) return;
+  confirmReservaData = a;
+  // override: directly show as "terminar" screen
+  showConfirmScreen(a);
+}
+
+// =============================================
+// CANCEL
+// =============================================
+function triggerCancel(id) {
+  cancelTargetId = id;
+  openModal('modalCancel');
+}
+
+function confirmCancel() {
+  const ag = agendamentos.find(a=>a.id===cancelTargetId);
+  if (ag) ag.status = 'cancelado';
+  closeModal('modalCancel');
+  showToast('Reserva cancelada com sucesso.','warning');
+  // re-render current view
+  if (currentUser.role==='admin') renderReservas(false);
+  else renderReservas(true);
+}
+
+// =============================================
+// RELATORIO
+// =============================================
+function openRelatorio() {
+  const today = new Date();
+  const dow = today.getDay();
+  const monday = new Date(today); monday.setDate(today.getDate() - (dow===0?6:dow-1));
+  const sunday = new Date(monday); sunday.setDate(monday.getDate()+6);
+  const fmt = d => d.toLocaleDateString('pt-BR');
+  document.getElementById('reportDateRange').textContent = `Semana de ${fmt(monday)} a ${fmt(sunday)}`;
+
+  const total = agendamentos.length;
+  const emUso = agendamentos.filter(a=>a.status==='em-uso').length;
+  const confirmados = agendamentos.filter(a=>a.status==='confirmado').length;
+  const cancelados = agendamentos.filter(a=>a.status==='cancelado').length;
+  const problemas = agendamentos.filter(a=>a.problema && a.problema.length>0);
+
+  document.getElementById('reportContent').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem;">
+      ${miniStat('Total',total,'#6366f1')}
+      ${miniStat('Em Uso',emUso,'#3b82f6')}
+      ${miniStat('Confirmados',confirmados,'#10b981')}
+      ${miniStat('Cancelados',cancelados,'#f43f5e')}
+    </div>
+
+    ${problemas.length>0 ? `
+    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:1rem;margin-bottom:1.25rem;">
+      <div style="font-weight:700;font-size:0.85rem;color:#92400e;margin-bottom:0.75rem;display:flex;align-items:center;gap:6px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> Ocorrências e Problemas Relatados (${problemas.length})
+      </div>
+      ${problemas.map(a=>`
+        <div style="padding:6px 0;border-bottom:1px solid #fde68a;font-size:0.82rem;color:#78350f;">
+          <strong>${a.espacoNome}</strong> — ${a.sala} &nbsp;·&nbsp; ${formatDate(a.data)} ${a.horario}
+          <br><span style="color:#92400e;"><i class="fa-solid fa-circle-exclamation" style="margin-right:4px;"></i>${a.problema}</span>
+        </div>
+      `).join('')}
+    </div>` : `
+    <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:0.9rem;margin-bottom:1.25rem;font-size:0.85rem;color:#065f46;display:flex;align-items:center;gap:8px;">
+      <i class="fa-solid fa-circle-check"></i> Nenhum problema relatado nesta semana!
+    </div>`}
+
+    <div style="font-weight:700;font-size:0.85rem;color:#1e293b;margin-bottom:0.75rem;">Todos os Agendamentos</div>
+    <div style="overflow-x:auto;border-radius:12px;border:1px solid #f1f5f9;">
+      <table class="report-table" style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr>
+            <th>Espaço</th><th>Professor</th><th>Data</th><th>Horário</th><th>Aulas</th><th>Eq.</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${agendamentos.map(a=>`
+            <tr>
+              <td style="font-weight:600;color:#1e293b;">${a.espacoNome}<br><span style="font-weight:400;color:#94a3b8;font-size:0.73rem;">${a.sala}</span></td>
+              <td>${a.professorNome}</td>
+              <td>${formatDate(a.data)}</td>
+              <td class="mono" style="font-size:0.78rem;">${a.horario}</td>
+              <td style="text-align:center;">${a.aulas}</td>
+              <td style="font-size:0.75rem;color:#64748b;">
+                ${a.notebooks>0?`<i class="fa-solid fa-laptop"></i> ${a.notebooks} `:''}
+                ${a.tablets>0?`<i class="fa-solid fa-tablet-screen-button"></i> ${a.tablets}`:'—'}
+              </td>
+              <td>${badgeStatus(a.status)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:1rem;font-size:0.75rem;color:#94a3b8;text-align:right;">
+      Gerado em ${new Date().toLocaleString('pt-BR')} · EduSpace v1.0
+    </div>
+  `;
+  openModal('modalReport');
+}
+
+function miniStat(label, val, color) {
+  return `<div style="background:white;border:1px solid #f1f5f9;border-radius:10px;padding:0.75rem;text-align:center;">
+    <div style="font-size:1.5rem;font-weight:800;color:${color};">${val}</div>
+    <div style="font-size:0.72rem;color:#64748b;margin-top:2px;">${label}</div>
+  </div>`;
+}
+
+function printReport() {
+  window.print();
+}
+
+// =============================================
+// HELPERS
+// =============================================
+function reservaCardHTML(a) {
+  const ec = getEspacoColor(a.espacoId);
+  const ei = getEspacoIcon(a.espacoId);
+  return `<div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:10px;background:#fafbff;border:1px solid #f1f5f9;">
+    <div style="width:34px;height:34px;border-radius:10px;background:${ec}18;display:flex;align-items:center;justify-content:center;color:${ec};font-size:0.8rem;flex-shrink:0;">
+      <i class="fa-solid ${ei}"></i>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <div style="font-weight:600;font-size:0.82rem;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${a.espacoNome}</div>
+      <div style="font-size:0.73rem;color:#94a3b8;">${formatDate(a.data)} · ${a.horario}</div>
+    </div>
+    ${badgeStatus(a.status)}
+  </div>`;
+}
+
+function badgeStatus(status) {
+  const map = {
+    'confirmado': ['badge-emerald','fa-circle-check','Confirmado'],
+    'em-uso': ['badge-blue','fa-circle-dot','Em Uso'],
+    'pendente': ['badge-amber','fa-clock','Pendente'],
+    'cancelado': ['badge-slate','fa-ban','Cancelado'],
+  };
+  const [cls, ico, label] = map[status] || map.pendente;
+  return `<span class="badge ${cls}"><i class="fa-solid ${ico}"></i>${label}</span>`;
+}
+
+function getEspacoColor(id) {
+  return ESPACOS.find(e=>e.id===id)?.color || '#6366f1';
+}
+function getEspacoIcon(id) {
+  return ESPACOS.find(e=>e.id===id)?.icon || 'fa-building';
+}
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,dd] = d.split('-');
+  return `${dd}/${m}/${y}`;
+}
+
+// =============================================
+// MODAL UTILS
+// =============================================
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+// close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target===o) o.classList.remove('show'); });
+});
+
+// =============================================
+// SIDEBAR MOBILE
+// =============================================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+}
+
+// =============================================
+// TOAST
+// =============================================
+function showToast(msg, type='success') {
+  const icons = { success:'fa-circle-check', error:'fa-circle-xmark', warning:'fa-triangle-exclamation', info:'fa-circle-info' };
+  const colors = { success:'#10b981', error:'#f43f5e', warning:'#f59e0b', info:'#3b82f6' };
+  const t = document.createElement('div');
+  t.className = 'toast';
+  t.innerHTML = `<i class="fa-solid ${icons[type]||icons.success}" style="color:${colors[type]};font-size:1.1rem;"></i><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(() => { t.classList.add('exit'); setTimeout(()=>t.remove(), 300); }, 3500);
+}
+
+// =============================================
+// CLOCK
+// =============================================
+function updateClock() {
+  const now = new Date();
+  document.getElementById('topbarClock').textContent = now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+</script>
+</body>
+</html>
